@@ -80,13 +80,13 @@ def get_projects_for_repo(token: str, owner: str, repo: str, debug: bool = False
                 
                 return project_list
             else:
-                typer.echo(f"🔍 Debug: No repository data found or access denied")
+                debug_print("No repository data found or access denied", debug)
                 return get_org_projects(token, owner)
         else:
-            typer.echo(f"🔍 Debug: GraphQL request failed: {response.status_code}")
+            debug_print(f"GraphQL request failed: {response.status_code}", debug)
             return []
     except Exception as e:
-        typer.echo(f"🔍 Debug: Error fetching projects: {str(e)}")
+        debug_print(f"Error fetching projects: {str(e)}", debug)
         return []
 
 def add_issue_to_project(token: str, project_id: str, issue_node_id: str, debug: bool = False) -> bool:
@@ -105,9 +105,9 @@ def add_issue_to_project(token: str, project_id: str, issue_node_id: str, debug:
         }
         """
         
-        typer.echo(f"🔍 Debug: Adding issue to project via GraphQL")
-        typer.echo(f"🔍 Debug: Project ID: {project_id}")
-        typer.echo(f"🔍 Debug: Issue Node ID: {issue_node_id}")
+        debug_print("Adding issue to project via GraphQL", debug)
+        debug_print(f"Project ID: {project_id}", debug)
+        debug_print(f"Issue Node ID: {issue_node_id}", debug)
         
         headers = {
             "Authorization": f"Bearer {token}",
@@ -123,16 +123,16 @@ def add_issue_to_project(token: str, project_id: str, issue_node_id: str, debug:
         if response.status_code == 200:
             data = response.json()
             if "data" in data and data["data"]["addProjectV2ItemById"]:
-                typer.echo(f"✅ Issue successfully added to project!")
+                typer.echo(typer.style("✅ Issue successfully added to project!", fg=typer.colors.GREEN))
                 return True
             else:
-                typer.echo(f"🔍 Debug: GraphQL response: {data}")
+                debug_print(f"GraphQL response: {data}", debug)
                 return False
         else:
-            typer.echo(f"🔍 Debug: GraphQL mutation failed: {response.status_code}")
+            debug_print(f"GraphQL mutation failed: {response.status_code}", debug)
             return False
     except Exception as e:
-        typer.echo(f"🔍 Debug: Error adding issue to project: {str(e)}")
+        debug_print(f"Error adding issue to project: {str(e)}", debug)
         return False
 
 def get_org_projects(token: str, owner: str, debug: bool = False) -> list:
@@ -152,7 +152,7 @@ def get_org_projects(token: str, owner: str, debug: bool = False) -> list:
         }
         """
         
-        typer.echo(f"🔍 Debug: GraphQL query for organization projects")
+        debug_print("GraphQL query for organization projects", debug)
         
         headers = {
             "Authorization": f"Bearer {token}",
@@ -170,16 +170,16 @@ def get_org_projects(token: str, owner: str, debug: bool = False) -> list:
             if "data" in data and data["data"]["organization"]:
                 projects = data["data"]["organization"]["projectsV2"]["nodes"]
                 project_list = [{"id": p["id"], "name": p["title"], "number": p["number"]} for p in projects]
-                typer.echo(f"🔍 Debug: Organization projects response: {len(project_list)} projects found")
+                debug_print(f"Organization projects response: {len(project_list)} projects found", debug)
                 return project_list
             else:
-                typer.echo(f"🔍 Debug: No organization data found or access denied")
+                debug_print("No organization data found or access denied", debug)
                 return []
         else:
-            typer.echo(f"🔍 Debug: GraphQL request failed: {response.status_code}")
+            debug_print(f"GraphQL request failed: {response.status_code}", debug)
             return []
     except Exception as e:
-        typer.echo(f"🔍 Debug: Error fetching org projects: {str(e)}")
+        debug_print(f"Error fetching org projects: {str(e)}", debug)
         return []
 
 def get_github_token() -> str:
