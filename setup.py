@@ -7,6 +7,7 @@ setup(
     install_requires=[
         'typer[all]',
         'PyGithub',
+        'requests',
     ],
     entry_points={
         'console_scripts': [
