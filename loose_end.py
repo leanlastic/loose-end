@@ -5,7 +5,10 @@ import requests
 from github import Github
 from typing import Optional
 
-app = typer.Typer()
+app = typer.Typer(
+    help="🚀 Loose-End CLI Tool - Create GitHub issues with intelligent project linking",
+    epilog="Examples:\n  loose-end\n  loose-end 'Bug fix' 'Fixed login issue' -p\n  loose-end 'Feature' 'Add dark mode' -p 'My Project'\n  loose-end --debug"
+)
 
 def debug_print(message: str, debug_enabled: bool = False):
     """Print debug message only if debug is enabled"""
@@ -197,7 +200,12 @@ def loose_end(
     project: Optional[str] = typer.Option(None, "-p", "--project", help="Project name to link to, or use first project if -p without value"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug output")
 ):
-    """Create a GitHub issue and optionally link it to a project"""
+    """
+    Create a GitHub issue and optionally link it to a project.
+    
+    Run without arguments for interactive mode, or provide title and description for fast mode.
+    Use -p to auto-link to first project, or -p "Project Name" for specific project.
+    """
     # Step 1: Check if we're inside a git repo
     if not check_if_git_repo():
         typer.echo(typer.style("❌ This is not a Git repository.", fg=typer.colors.RED), err=True)

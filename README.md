@@ -93,15 +93,20 @@ To install the **Loose-End CLI Tool** globally (or within a virtual environment)
 
 ## 🚀 Usage
 
+**⚠️ Important**: The CLI must be run from within your Git project directory (the repository where you want to create issues).
+
 ### Interactive Mode
 Run the tool interactively with guided prompts:
 ```bash
+cd /path/to/your/git-project
 loose-end
 ```
 
 ### Fast Mode
 Create issues instantly with command-line arguments:
 ```bash
+cd /path/to/your/git-project
+
 # Basic issue creation
 loose-end "Bug in login form" "The login form doesn't validate email addresses properly"
 
@@ -115,6 +120,7 @@ loose-end "Bug fix" "Fixed authentication issue" -p "My Project"
 ### Debug Mode
 Enable debug output for troubleshooting:
 ```bash
+cd /path/to/your/git-project
 loose-end --debug
 ```
 
@@ -170,6 +176,7 @@ Now you can run the `loose-end` command from any directory in your terminal.
 
 ### Interactive Mode Flow
 ```bash
+$ cd /path/to/your/git-project
 $ loose-end
 🔗 Would you like to link this to a project? [Y/n]: Y
 📋 Auto-selected project: My Project
@@ -190,6 +197,8 @@ Project: My Project
 
 ### Fast Mode Examples
 ```bash
+cd /path/to/your/git-project
+
 # Quick issue without project
 loose-end "Fix login bug" "Login form validation is broken"
 
