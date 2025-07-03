@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='loose-end-cli',
     version='1.0',
-    packages=find_packages(),  # Automatically finds the loose_end package
+    py_modules=['loose_end'],
     install_requires=[
         'typer[all]',
         'PyGithub',
