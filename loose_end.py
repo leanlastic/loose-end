@@ -1,6 +1,5 @@
 import os
 import subprocess
-import json
 import typer
 from github import Github
 
@@ -27,17 +26,13 @@ def get_remote_url() -> str:
     except subprocess.CalledProcessError:
         return ""
 
-def get_projects_for_repo(owner: str, repo: str) -> list:
+def get_projects_for_repo(gh: Github, owner: str, repo: str) -> list:
     """Fetch projects for the repository from the GitHub API"""
     try:
-        result = subprocess.run(
-            ["gh", "api", f"repos/{owner}/{repo}/projects"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return json.loads(result.stdout)
-    except subprocess.CalledProcessError as e:
+        repository = gh.get_repo(f"{owner}/{repo}")
+        projects = repository.get_projects()
+        return [{"id": p.id, "name": p.name, "number": p.number} for p in projects]
+    except Exception as e:
         return []
 
 def get_github_token() -> str:
@@ -69,25 +64,24 @@ def loose_end():
     parts = remote_url.split("/")
     owner, repo = parts[-2], parts[-1].replace(".git", "")
 
-    # Step 4: List available projects for the repo
-    projects = get_projects_for_repo(owner, repo)
+    # Step 4: Get GitHub token and authenticate
+    token = get_github_token()
+    gh = Github(token)
+    
+    # Step 5: List available projects for the repo
+    projects = get_projects_for_repo(gh, owner, repo)
     project_names = [project["name"] for project in projects]
 
-    # Step 5: Prompt user for input
-    question = typer.prompt("Is this an issue or draft?", type=str, default="issue")
+    # Step 6: Prompt user for input
     link_project = typer.confirm("Would you like to link this to a project?", default=True)
     
-    if link_project:
+    if link_project and project_names:
         project = typer.prompt(f"Choose a project ({', '.join(project_names)})", type=str)
     else:
         project = None
 
     title = typer.prompt("Issue Title")
     description = typer.prompt("Issue Description")
-    
-    # Step 6: Get GitHub token and authenticate
-    token = get_github_token()
-    gh = Github(token)
 
     # Step 7: Create the issue on GitHub
     try:
@@ -98,16 +92,17 @@ def loose_end():
         )
 
         # Step 8: If linked to project, add the issue to the project board
-        if project:
-            project_data = next(p for p in projects if p["name"] == project)
-            project_id = project_data["id"]
-            project_column = project_data["columns_url"] + "/cards"
-            
-            # Link issue to the project column (example, needs further handling)
-            subprocess.run(
-                ["gh", "api", "-X", "POST", project_column, "-f", f"content_id={issue.id}&content_type=Issue"],
-                check=True
-            )
+        if project and projects:
+            project_data = next((p for p in projects if p["name"] == project), None)
+            if project_data:
+                try:
+                    project_obj = gh.get_project(project_data["id"])
+                    # Get the first column (typically "To Do" or similar)
+                    columns = list(project_obj.get_columns())
+                    if columns:
+                        columns[0].create_card(content_id=issue.id, content_type="Issue")
+                except Exception as e:
+                    typer.echo(f"⚠️  Issue created but failed to add to project: {str(e)}", err=True)
         
         # Step 9: Success message
         typer.echo(f"✅ Issue created successfully! {issue.html_url}")
